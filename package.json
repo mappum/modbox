@@ -1,0 +1,11 @@
+{
+  "name": "micro-vm",
+  "version": "0.0.0",
+  "description": "Securely contain untrusted JS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matt Bell <mappum@gmail.com>",
+  "license": "MIT"
+}
