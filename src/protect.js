@@ -1,10 +1,12 @@
 'use strict'
 
-function protect (value) {
+const { IGNORE } = require('./memory-meter.js')
+
+function protect (value, applyTrap, unprotectedParent) {
   function protectedTrap (method) {
     return (...args) => {
       let returnValue = method(...args)
-      return protect(returnValue, proxy)
+      return protect(returnValue, applyTrap, value)
     }
   }
 
@@ -26,14 +28,18 @@ function protect (value) {
     getPrototypeOf: protectedTrap(Reflect.getPrototypeOf),
     isExtensible: protectedTrap(Reflect.isExtensible),
     getOwnPropertyDescriptor: protectedTrap(Reflect.getOwnPropertyDescriptor),
-    has: protectedTrap(Reflect.has),
     ownKeys: protectedTrap(Reflect.ownKeys),
     construct: protectedTrap(Reflect.construct),
+    has (target, key) {
+      // signal to MemoryMeter that protected values should not be counted
+      if (key === IGNORE) return true
+      return Reflect.has(target, key)
+    },
     apply (target, thisArg, args) {
-      // call with protected 'this'
-      thisArg = protect(thisArg)
-      let returnValue = Reflect.apply(target, thisArg, args)
-      return protect(returnValue)
+      // this trap is specified via `applyTrap` since it works differently
+      // for interval vs external.
+      // we use the unprotected parent as the `thisArg`
+      return applyTrap(target, unprotectedParent, args)
     },
 
     // modifications
@@ -47,4 +53,23 @@ function protect (value) {
   return proxy
 }
 
-module.exports = protect
+function internal (value) {
+  return protect(value, (target, thisArg, args) => {
+    // protect return value to prevent escape
+    let returnValue = Reflect.apply(target, thisArg, args)
+    return protect(returnValue)
+  })
+}
+
+function external (value) {
+  return protect(value, (target, thisArg, args) => {
+    // protect arguments and `this` to prevent escape
+    args = protect(args)
+    return Reflect.apply(target, thisArg, args)
+  })
+}
+
+module.exports = {
+  internal,
+  external
+}
