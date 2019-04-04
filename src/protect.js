@@ -2,6 +2,9 @@
 
 const { IGNORE } = require('./memory-meter.js')
 
+// TODO: special handling of prototypes to support passing
+//       classes in/out?
+
 function protect (value, applyTrap, unprotectedParent) {
   function protectedTrap (method) {
     return (...args) => {
