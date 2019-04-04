@@ -51,7 +51,7 @@ function createModule (code, opts = {}) {
   let instrumented = instrumentCode(burnId, code)
   realm.evaluate(instrumented, {
     // consumer-supplied globals
-    ...protect.internal(opts.global),
+    ...protect.internal(opts.globals),
 
     [burnId]: burnHandler,
     module,
