@@ -21,7 +21,10 @@ class MemoryMeter {
       this.existingCosts.set(value, cost)
     }
 
-    this.sum += cost - existingCost
+    // XXX: increase monotonically, even if we delete a bunch of keys
+    //      since we are targeting use cases which run too fast for
+    //      GC to kick in
+    this.sum += Math.max(cost - existingCost, 0)
 
     return this.sum
   }
