@@ -15,7 +15,7 @@ function createModule (code, opts = {}) {
 
   let memoryMeter = new MemoryMeter()
   let realm = makeSESRootRealm({
-    consoleMode: 'allow'
+    consoleMode: opts.allowConsole ? 'allow' : false
   })
 
   // run prelude code inside realm, giving us the
