@@ -25,31 +25,41 @@ function createModule (code, opts = {}) {
     functionConstructors
   } = realm.evaluate(prelude)
 
+  let aborting = false
   let burnHandler = (value) => {
-    // ban use of function constructors
-    // (otherwise an attacker could execute uninstrumented code)
-    // XXX: this prevents using the constructor's static methods
-    // TODO: allow, but wrap to instrument code when called
-    if (functionConstructors.has(value)) {
-      throw Error('Function constructor is not allowed')
-    }
+    // throw if a previous burn handler already errored
+    // TODO: find better way to abort?
+    if (aborting) throw Error('Execution failed')
 
-    // ban regular expressions
-    if (value instanceof RegExp) {
-      throw Error('Regular expressions are not allowed')
-    }
+    try {
+      // ban use of function constructors
+      // (otherwise an attacker could execute uninstrumented code)
+      // XXX: this prevents using the constructor's static methods
+      // TODO: allow, but wrap to instrument code when called
+      if (functionConstructors.has(value)) {
+        throw Error('Function constructor is not allowed')
+      }
 
-    // TODO: implement a gasLimit option?
-    if (opts.onBurn) {
-      opts.onBurn(value)
-    }
+      // ban regular expressions
+      if (value instanceof RegExp) {
+        throw Error('Regular expressions are not allowed')
+      }
 
-    let memoryUsage = memoryMeter.count(value)
-    if (memoryUsage > opts.memoryLimit) {
-      throw Error('Exceeded memory limit')
-    }
+      // TODO: implement a gasLimit option?
+      if (opts.onBurn) {
+        opts.onBurn(value)
+      }
 
-    return value
+      let memoryUsage = memoryMeter.count(value)
+      if (memoryUsage > opts.memoryLimit) {
+        throw Error('Exceeded memory limit')
+      }
+
+      return value
+    } catch (err) {
+      aborting = true
+      // TODO: also revoke membrane proxies?
+    }
   }
 
   // run consumer's module code,
