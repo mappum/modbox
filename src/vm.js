@@ -21,8 +21,10 @@ function createModule (code, opts = {}) {
   // run prelude code inside realm
   let {
     module,
+    functionConstructors,
+    iteratedMethods,
     RegExp,
-    functionConstructors
+    stringRepeat
   } = realm.evaluate(prelude)
 
   let aborting = false
@@ -46,6 +48,19 @@ function createModule (code, opts = {}) {
       if (value instanceof RegExp) {
         throw Error('Regular expressions are not allowed')
       }
+
+      // make sure iterated methods (Array#forEach, etc) call burn handler for each iteration
+      if (iteratedMethods.has(value)) {
+        let method = value
+        value = function (func, ...args) {
+          // wrap iteration function to call burn handler
+          func = (...args) => burnHandler(func(...args))
+          return method.call(this, ...args)
+        }
+      }
+
+      // TODO: add burn handler call for other expensive built-ins
+      //       (String#repeat, String#replace, etc.)
 
       // TODO: implement a gasLimit option?
       if (opts.onBurn) {
