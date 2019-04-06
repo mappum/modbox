@@ -34,6 +34,8 @@ function createModule (code, opts = {}) {
     try {
       // ban use of function constructors
       // (otherwise an attacker could execute uninstrumented code)
+      // also prevents shadowing the burn handler identifier, which would
+      // allow instrumented code to not actually call the burn handler.
       // XXX: this prevents using the constructor's static methods
       // TODO: allow, but wrap to instrument code when called
       if (functionConstructors.has(value)) {
