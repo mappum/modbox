@@ -1,19 +1,26 @@
 'use strict'
 
 function prelude (burnId) {
-  // TODO: protect against Function/etc constructors
-  //       so that an attacker can't run uninstrumented code
-
   // TODO: wrap all built-in functions to make a `burn` call
   //       so an attacker can't do:
   //         `bigArray.forEach(someBuiltInFunction)`
 
   let module = { exports: {} }
 
+  // get the function constructors so we can ban their usage in
+  // the burn handler
+  let functionConstructors = new Set([
+    Function,
+    Object.getPrototypeOf(async function () {}).constructor,
+    Object.getPrototypeOf(function * () {}).constructor,
+    Object.getPrototypeOf(async function * () {}).constructor
+  ])
+
   return {
     module,
-    RegExp
+    RegExp,
+    functionConstructors
   }
 }
 
-module.exports = `(${prelude}());`
+module.exports = `"use strict"; (${prelude}());`

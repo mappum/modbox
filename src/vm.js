@@ -18,14 +18,22 @@ function createModule (code, opts = {}) {
     consoleMode: opts.allowConsole ? 'allow' : false
   })
 
-  // run prelude code inside realm, giving us the
-  // `module` object
+  // run prelude code inside realm
   let {
     module,
-    RegExp
+    RegExp,
+    functionConstructors
   } = realm.evaluate(prelude)
 
   let burnHandler = (value) => {
+    // ban use of function constructors
+    // (otherwise an attacker could execute uninstrumented code)
+    // XXX: this prevents using the constructor's static methods
+    // TODO: allow, but wrap to instrument code when called
+    if (functionConstructors.has(value)) {
+      throw Error('Function constructor is not allowed')
+    }
+
     // ban regular expressions
     if (value instanceof RegExp) {
       throw Error('Regular expressions are not allowed')

@@ -5,6 +5,9 @@ const { IGNORE } = require('./memory-meter.js')
 // TODO: special handling of prototypes to support passing
 //       classes in/out?
 
+// TODO: WeakMap reference->proxy mapping so we can preserve
+//       identities
+
 function protect (value, applyTrap, unprotectedParent) {
   function protectedTrap (method) {
     return (...args) => {
