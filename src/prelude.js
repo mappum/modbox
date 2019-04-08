@@ -1,6 +1,6 @@
 'use strict'
 
-function prelude (burnId) {
+function prelude () {
   // get the function constructors so we can ban their usage in
   // the burn handler
   let functionConstructors = new Set([
@@ -49,7 +49,7 @@ function prelude (burnId) {
     functionConstructors,
     iteratedMethods,
     RegExp,
-    stringRepeat: String.protoype.repeat
+    stringRepeat: String.prototype.repeat
   }
 }
 
