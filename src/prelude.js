@@ -53,4 +53,4 @@ function prelude (burnId) {
   }
 }
 
-module.exports = `"use strict"; (${prelude}());`
+module.exports = `"use strict"; (${prelude})();`

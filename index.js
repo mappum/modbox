@@ -1,4 +1,4 @@
 'use strict'
 
-module.exports = require('./src/vm.js')
+module.exports = require('./src/box.js')
 
