@@ -11,6 +11,7 @@ function createModule (code, opts = {}) {
   // TODO: ensure args are valid
 
   // TODO: find good default
+  opts.computeLimit = opts.computeLimit || 10e6
   opts.memoryLimit = opts.memoryLimit || 10e6
 
   let memoryMeter = new MemoryMeter()
@@ -27,8 +28,10 @@ function createModule (code, opts = {}) {
     stringRepeat
   } = realm.evaluate(prelude)
 
+  let computeUsage = 0
   let aborting = false
   let abortMessage
+
   let burnHandler = (value) => {
     // throw if a previous burn handler already errored
     // TODO: find better way to abort?
@@ -66,6 +69,11 @@ function createModule (code, opts = {}) {
       // TODO: implement a gasLimit option?
       if (opts.onBurn) {
         opts.onBurn(value)
+      }
+
+      computeUsage += 1
+      if (computeUsage > opts.computeLimit) {
+        throw Error('Exceeded compute limit')
       }
 
       let memoryUsage = memoryMeter.count(value)
