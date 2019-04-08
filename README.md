@@ -54,6 +54,7 @@ Creates a boxed module by evaluating the code string passed in as the `code` arg
 
 To prevent DoS attacks and non-determinism, this module is pretty conservative about what features are accessible from inside the box. The following are currently not allowed:
 
+- `require` - instead, pass in other modules through the `globals` option
 - `JSON` (e.g. `JSON.stringify(...)`)
 - Regular expressions
 - `Buffer`
@@ -63,7 +64,7 @@ To prevent DoS attacks and non-determinism, this module is pretty conservative a
 - `eval()` (not defined)
 - The `Function` constructor
 
-Some of these, e.g. `Buffer` will likely be enabled in the future.
+Some of these, e.g. `Buffer` and a limited form of `require` will likely be enabled in the future.
 
 ## CPU and Memory Limit Caveats
 
