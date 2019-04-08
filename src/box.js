@@ -28,10 +28,11 @@ function createModule (code, opts = {}) {
   } = realm.evaluate(prelude)
 
   let aborting = false
+  let abortMessage
   let burnHandler = (value) => {
     // throw if a previous burn handler already errored
     // TODO: find better way to abort?
-    if (aborting) throw Error('Execution failed')
+    if (aborting) throw Error(`Execution failed: ${abortMessage}`)
 
     try {
       // ban use of function constructors
@@ -75,6 +76,7 @@ function createModule (code, opts = {}) {
       return value
     } catch (err) {
       aborting = true
+      abortMessage = err.message
       // TODO: also revoke membrane proxies?
     }
   }
