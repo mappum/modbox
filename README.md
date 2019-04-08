@@ -60,6 +60,7 @@ To prevent DoS attacks and non-determinism, this module is pretty conservative a
 - `Buffer`
 - `Date.now()` (returns `NaN`)
 - `new Date()` (returns `new Date(NaN)`, still works if you pass in a timestamp)
+- `setTimeout()`/`setInterval()`/`setImmediate()`
 - `Math.random()` (throws)
 - `eval()` (not defined)
 - The `Function` constructor
