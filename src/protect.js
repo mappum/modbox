@@ -2,22 +2,39 @@
 
 const { IGNORE } = require('./memory-meter.js')
 
-// TODO: special handling of prototypes to support passing
-//       classes in/out?
-
 // TODO: WeakMap reference->proxy mapping so we can preserve
 //       identities
 
-function protect (value, applyTrap, unprotectedParent) {
+// prevent all modifications
+const readOnlyTraps = {
+  set: throwReadOnlyError,
+  setPrototypeOf: throwReadOnlyError,
+  preventExtensions: throwReadOnlyError,
+  defineProperty: throwReadOnlyError,
+  deleteProperty: throwReadOnlyError
+}
+
+// allow setting with no protection, but prevent setting prototype, or freezing
+const writableTraps = {
+  getPrototypeOf (target) {
+    // prototypes are read-only
+    let prototype = Reflect.getPrototypeOf(target)
+    return internal(prototype)
+  },
+  setPrototypeOf: throwReadOnlyError,
+  preventExtensions: throwReadOnlyError // XXX: do we need this?
+}
+
+function throwReadOnlyError () {
+  throw Error('Protected object is read-only')
+}
+
+function protect (value, applyTrap, readOnly = true, unprotectedParent) {
   function protectedTrap (method) {
     return (...args) => {
       let returnValue = method(...args)
-      return protect(returnValue, applyTrap, value)
+      return protect(returnValue, applyTrap, readOnly, value)
     }
-  }
-
-  function throwReadOnlyError () {
-    throw Error('Protected object is read-only')
   }
 
   // primitives get passed through
@@ -48,12 +65,7 @@ function protect (value, applyTrap, unprotectedParent) {
       return applyTrap(target, unprotectedParent, args)
     },
 
-    // modifications
-    set: throwReadOnlyError,
-    setPrototypeOf: throwReadOnlyError,
-    preventExtensions: throwReadOnlyError,
-    defineProperty: throwReadOnlyError,
-    deleteProperty: throwReadOnlyError
+    ...(readOnly ? readOnlyTraps : writableTraps)
   })
 
   return proxy
@@ -63,19 +75,28 @@ function internal (value) {
   return protect(value, (target, thisArg, args) => {
     // protect return value to prevent escape
     let returnValue = Reflect.apply(target, thisArg, args)
-    return protect(returnValue)
+    return internal(returnValue)
   })
 }
 
 function external (value) {
   return protect(value, (target, thisArg, args) => {
     // protect arguments and `this` to prevent escape
-    args = protect(args)
+    args = external(args)
     return Reflect.apply(target, thisArg, args)
   })
 }
 
+function internalWritable (value) {
+  return protect(value, (target, thisArg, args) => {
+    // protect return value to prevent escape
+    let returnValue = Reflect.apply(target, thisArg, args)
+    return internalWritable(returnValue)
+  }, false)
+}
+
 module.exports = {
   internal,
-  external
+  external,
+  internalWritable
 }

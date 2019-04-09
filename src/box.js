@@ -13,6 +13,7 @@ function createModule (code, opts = {}) {
   // TODO: find good default
   opts.computeLimit = opts.computeLimit || 10e6
   opts.memoryLimit = opts.memoryLimit || 10e6
+  opts.globals = opts.globals || {}
 
   let memoryMeter = new MemoryMeter()
   let realm = makeSESRootRealm({
@@ -21,7 +22,7 @@ function createModule (code, opts = {}) {
 
   // run prelude code inside realm
   let {
-    module,
+    module: realmModule,
     functionConstructors,
     iteratedMethods,
     RegExp,
@@ -99,7 +100,7 @@ function createModule (code, opts = {}) {
     ...protect.internal(opts.globals),
 
     [burnId]: burnHandler,
-    module,
+    module: realmModule,
 
     // blacklisted globals
     JSON: undefined,
@@ -107,7 +108,22 @@ function createModule (code, opts = {}) {
     SES: undefined
   })
 
-  return protect.external(module.exports)
+  // TODO: wrap to inherit rather than assigning?
+  if (opts.module) {
+    // assign to module from `opts.module`
+    let exports = realmModule.exports
+    Object.assign(
+      realmModule,
+      protect.internalWritable(opts.module)
+    )
+    // copy exported functions to the new exports object
+    for (let [ key, value ] of Object.entries(exports)) {
+      if (typeof value !== 'function') continue
+      realmModule.exports[key] = value
+    }
+  }
+
+  return protect.external(realmModule.exports)
 }
 
 function getBurnIdentifier (code) {
