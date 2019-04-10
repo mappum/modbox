@@ -47,6 +47,15 @@ function instrumentCode (burnIdentifier, code) {
             []
           )
           call[SKIP] = true
+
+          if (path.node.body.type !== 'BlockStatement') {
+            let returnValue = path.node.body
+            path.node.body = t.blockStatement([
+              t.returnStatement(returnValue)
+            ])
+            path.node.body[SKIP] = true
+          }
+
           path.node.body.body.unshift(call)
         }
       }
