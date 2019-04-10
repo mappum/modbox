@@ -4,7 +4,7 @@
   "description": "Securely box untrusted JS modules",
   "main": "index.js",
   "scripts": {
-    "test": "standard && nyc tape test/*"
+    "test": "standard && nyc -r text -r html tape test/*"
   },
   "author": "Matt Bell <mappum@gmail.com>",
   "license": "MIT",
