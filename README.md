@@ -64,6 +64,7 @@ To prevent DoS attacks and non-determinism, this module is pretty conservative a
 - `Math.random()` (throws)
 - `eval()` (not defined)
 - The `Function` constructor
+- Typed arrays (`Uint8Array`, etc.)
 
 Some of these, e.g. `Buffer` and a limited form of `require` will likely be enabled in the future.
 
