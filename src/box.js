@@ -96,6 +96,8 @@ function createModule (code, opts = {}) {
       if (!abortState.message) {
         abortState.message = err.message
       }
+
+      throw Error(`Execution failed: ${abortState.message}`)
       // TODO: also revoke membrane proxies?
     }
   }
