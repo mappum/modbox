@@ -16,6 +16,7 @@ const readOnlyTraps = {
 
 // allow setting with no protection, but prevent setting prototype, or freezing
 const writableTraps = {
+  // TODO: prevent apply/construct?
   getPrototypeOf (target) {
     // prototypes are read-only
     let prototype = Reflect.getPrototypeOf(target)
