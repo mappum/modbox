@@ -29,13 +29,18 @@ function createModule (code, opts = {}) {
   } = realm.evaluate(prelude)
 
   let computeUsage = 0
-  let aborting = false
-  let abortMessage
+
+  let abortState = {
+    aborting: false,
+    message: null
+  }
 
   let burnHandler = (value) => {
     // throw if a previous burn handler already errored
     // TODO: find better way to abort?
-    if (aborting) throw Error(`Execution failed: ${abortMessage}`)
+    if (abortState.aborting) {
+      throw Error(`Execution failed: ${abortState.message}`)
+    }
 
     try {
       // ban use of function constructors and typed arrays.
@@ -87,8 +92,10 @@ function createModule (code, opts = {}) {
 
       return value
     } catch (err) {
-      aborting = true
-      abortMessage = err.message
+      abortState.aborting = true
+      if (!abortState.message) {
+        abortState.message = err.message
+      }
       // TODO: also revoke membrane proxies?
     }
   }
@@ -126,7 +133,7 @@ function createModule (code, opts = {}) {
     }
   }
 
-  return protect.external(realmModule.exports)
+  return protect.external(realmModule.exports, abortState)
 }
 
 function getBurnIdentifier (code) {

@@ -79,11 +79,23 @@ function internal (value) {
   })
 }
 
-function external (value) {
+function external (value, abortState) {
   return protect(value, (target, thisArg, args) => {
+    // calls should fail if we aborted
+    if (abortState.aborting) {
+      throw Error('Box was aborted')
+    }
+
     // protect arguments and `this` to prevent escape
     args = external(args)
-    return Reflect.apply(target, thisArg, args)
+    try {
+      return Reflect.apply(target, thisArg, args)
+    } catch (err) {
+      if (abortState.aborting) {
+        throw Error(`Execution failed: ${abortState.message}`)
+      }
+      throw err
+    }
   })
 }
 
