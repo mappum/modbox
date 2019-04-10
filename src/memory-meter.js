@@ -42,11 +42,19 @@ function getCost (value) {
   //      incurs the cost N times
 
   if (typeof value === 'string') {
-    return value.length
+    return 4 + value.length * 2
   }
 
-  if (isPrimitive(value)) {
-    return 1
+  if (typeof value === 'boolean') {
+    return 4
+  }
+
+  if (typeof value === 'number') {
+    return 8
+  }
+
+  if (value == null) {
+    return 4
   }
 
   // non-primitives
@@ -56,11 +64,17 @@ function getCost (value) {
     return 0
   }
 
-  // TODO: handle typed arrays
-
-  // TODO: ensure this isn't easily spoofable
   if (Array.isArray(value)) {
-    return value.length * 4
+    return (value.length + 1) * 4
+  }
+
+  // typed arrays
+  if (value.buffer instanceof ArrayBuffer) {
+    return value.BYTES_PER_ELEMENT * value.length + 4
+  }
+
+  if (value instanceof ArrayBuffer) {
+    return value.byteLength + 4
   }
 
   // count keys in objects
@@ -70,7 +84,7 @@ function getCost (value) {
     Object.getOwnPropertyNames(value),
     Object.getOwnPropertySymbols(value)
   )
-  return keys.length * 4
+  return (keys.length + 1) * 4
 }
 
 module.exports = MemoryMeter
