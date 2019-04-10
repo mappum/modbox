@@ -13,10 +13,6 @@ function instrumentCode (burnIdentifier, code) {
             // is wrapper, skip
             return
           }
-          if (path.type === 'MemberExpression') {
-            // skip x.y expressions
-            return
-          }
           if (path.parentPath != null) {
             if (SKIP in path.parentPath.node) {
               // already wrapped, skip
@@ -27,6 +23,16 @@ function instrumentCode (burnIdentifier, code) {
               // (otherwise it would be `burn(x)++` which is invalid)
               return
             }
+          }
+
+          if (path.type === 'MemberExpression') {
+            // x.y expressions should turn to burn(x).y
+            path.node.object = t.callExpression(
+              t.identifier(burnIdentifier),
+              [ path.node.object ]
+            )
+            path.node.object[SKIP] = true
+            return
           }
 
           let call = t.callExpression(
