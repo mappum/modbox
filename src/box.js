@@ -23,10 +23,9 @@ function createModule (code, opts = {}) {
   // run prelude code inside realm
   let {
     module: realmModule,
-    functionConstructors,
+    bannedConstructors,
     iteratedMethods,
-    RegExp,
-    stringRepeat
+    RegExp
   } = realm.evaluate(prelude)
 
   let computeUsage = 0
@@ -39,14 +38,18 @@ function createModule (code, opts = {}) {
     if (aborting) throw Error(`Execution failed: ${abortMessage}`)
 
     try {
-      // ban use of function constructors
-      // (otherwise an attacker could execute uninstrumented code)
+      // ban use of function constructors and typed arrays.
+      // (with function constructors, an attacker could execute
+      // uninstrumented code)
       // also prevents shadowing the burn handler identifier, which would
       // allow instrumented code to not actually call the burn handler.
       // XXX: this prevents using the constructor's static methods
       // TODO: allow, but wrap to instrument code when called
-      if (functionConstructors.has(value)) {
-        throw Error('Function constructor is not allowed')
+      // with typed arrays, the attacker could exhaust our memory by creating
+      // a very long instance.
+      // TODO: allow typed arrays, but measure the memory cost before creating the instance
+      if (bannedConstructors.has(value)) {
+        throw Error(`${value.name} is not allowed`)
       }
 
       // ban regular expressions

@@ -1,13 +1,22 @@
 'use strict'
 
 function prelude () {
-  // get the function constructors so we can ban their usage in
+  // get banned constructors so we can ban their usage in
   // the burn handler
-  let functionConstructors = new Set([
+  let bannedConstructors = new Set([
     Function,
     Object.getPrototypeOf(async function () {}).constructor,
     Object.getPrototypeOf(function * () {}).constructor,
-    Object.getPrototypeOf(async function * () {}).constructor
+    Object.getPrototypeOf(async function * () {}).constructor,
+    Uint8Array,
+    Uint8ClampedArray,
+    Uint16Array,
+    Uint32Array,
+    Int8Array,
+    Int16Array,
+    Int32Array,
+    Float32Array,
+    Float64Array
   ])
 
   // get the collection prototypes' iterated methods (map, forEach, filter, etc.)
@@ -46,7 +55,7 @@ function prelude () {
 
   return {
     module,
-    functionConstructors,
+    bannedConstructors,
     iteratedMethods,
     RegExp,
     stringRepeat: String.prototype.repeat
