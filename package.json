@@ -1,6 +1,6 @@
 {
   "name": "modbox",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Securely box untrusted JS modules",
   "main": "index.js",
   "scripts": {
