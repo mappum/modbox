@@ -23,6 +23,10 @@ function instrumentCode (burnIdentifier, code) {
               // (otherwise it would be `burn(x)++` which is invalid)
               return
             }
+            if (path.parentPath.type === 'ObjectProperty') {
+              // skip for object properties
+              return
+            }
           }
 
           if (path.type === 'MemberExpression') {
