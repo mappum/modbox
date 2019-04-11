@@ -88,7 +88,7 @@ function external (value, abortState) {
     }
 
     // protect arguments and `this` to prevent escape
-    args = external(args)
+    args = external(args, abortState)
     try {
       return Reflect.apply(target, thisArg, args)
     } catch (err) {
